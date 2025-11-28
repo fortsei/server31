@@ -15,15 +15,29 @@ class BaseRepository:
             return None
 
     def create(self, **kwargs):
-        obj = self.model.objects.create(**kwargs)
+        return self.model.objects.create(**kwargs)
+    
+    def update(self, entity_id, **kwargs):
+        obj = self.get_by_id(entity_id)
+        if obj is None:
+            return None
+        for key, value in kwargs.items():
+            setattr(obj, key, value)
+        obj.save()
         return obj
 
+    def delete(self, entity_id):
+        obj = self.get_by_id(entity_id)
+        if obj is None:
+            return False
+        obj.delete()
+        return True
 
 
+# --- Конкретні репозиторії ---
 class CustomerRepository(BaseRepository):
     def __init__(self):
         super().__init__(Customer)
-
 
 
 class CourierRepository(BaseRepository):
@@ -31,15 +45,18 @@ class CourierRepository(BaseRepository):
         super().__init__(Courier)
 
 
-
 class DeliveryOrderRepository(BaseRepository):
     def __init__(self):
         super().__init__(DeliveryOrder)
 
 
-# Єдина точка доступу (Unit of Work / RepositoryManager)
+# --- Менеджер репозиторіїв (Unit of Work) ---
 class RepositoryManager:
     def __init__(self):
         self.customers = CustomerRepository()
         self.couriers = CourierRepository()
         self.orders = DeliveryOrderRepository()
+
+
+
+repo = RepositoryManager()
