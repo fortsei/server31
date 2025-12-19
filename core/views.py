@@ -1,159 +1,97 @@
-from rest_framework import status, viewsets
-from rest_framework.response import Response
-from rest_framework.decorators import action
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import DeliveryOrder
+from .forms import DeliveryOrderForm
+from django.shortcuts import redirect
+from .NetworkHelper import HotelAPI
 
-from .serializers import CustomerSerializer, CourierSerializer, DeliveryOrderSerializer
-from .repositories import CustomerRepository, CourierRepository, DeliveryOrderRepository
-
-
-# -------- Customers --------
-class CustomerViewSet(viewsets.ViewSet):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.repo = CustomerRepository()
-
-    def list(self, request):
-        customers = self.repo.get_all()
-        serializer = CustomerSerializer(customers, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def retrieve(self, request, pk=None):
-        customer = self.repo.get_by_id(pk)
-        if customer is None:
-            return Response({"detail": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
-        serializer = CustomerSerializer(customer)
-        return Response(serializer.data)
-
-    def create(self, request):
-        serializer = CustomerSerializer(data=request.data)
-        if serializer.is_valid():
-            customer = self.repo.create(**serializer.validated_data)
-            return Response(CustomerSerializer(customer).data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def update(self, request, pk=None):
-        serializer = CustomerSerializer(data=request.data)
-        if serializer.is_valid():
-            updated = self.repo.update(pk, **serializer.validated_data)
-            if updated is None:
-                return Response({"detail": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
-            return Response(CustomerSerializer(updated).data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def partial_update(self, request, pk=None):
-        customer = self.repo.get_by_id(pk)
-        if customer is None:
-            return Response({"detail": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = CustomerSerializer(customer, data=request.data, partial=True)
-        if serializer.is_valid():
-            updated = self.repo.update(pk, **serializer.validated_data)
-            return Response(CustomerSerializer(updated).data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def destroy(self, request, pk=None):
-        deleted = self.repo.delete(pk)
-        if not deleted:
-            return Response({"detail": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+def external_guests(request):
+    guests = HotelAPI.get_guests()
+    return render(request, "core/external_guests.html", {"guests": guests})
 
 
-# -------- Couriers --------
-class CourierViewSet(viewsets.ViewSet):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.repo = CourierRepository()
 
-    def list(self, request):
-        couriers = self.repo.get_all()
-        serializer = CourierSerializer(couriers, many=True)
-        return Response(serializer.data)
-
-    def retrieve(self, request, pk=None):
-        courier = self.repo.get_by_id(pk)
-        if courier is None:
-            return Response({"detail": "Courier not found"}, status=status.HTTP_404_NOT_FOUND)
-        serializer = CourierSerializer(courier)
-        return Response(serializer.data)
-
-    def create(self, request):
-        serializer = CourierSerializer(data=request.data)
-        if serializer.is_valid():
-            courier = self.repo.create(**serializer.validated_data)
-            return Response(CourierSerializer(courier).data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def update(self, request, pk=None):
-        serializer = CourierSerializer(data=request.data)
-        if serializer.is_valid():
-            updated = self.repo.update(pk, **serializer.validated_data)
-            if updated is None:
-                return Response({"detail": "Courier not found"}, status=status.HTTP_404_NOT_FOUND)
-            return Response(CourierSerializer(updated).data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def destroy(self, request, pk=None):
-        deleted = self.repo.delete(pk)
-        if not deleted:
-            return Response({"detail": "Courier not found"}, status=status.HTTP_404_NOT_FOUND)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+def order_list(request):
+    orders = DeliveryOrder.objects.all()
+    return render(request, 'core/order_list.html', {'orders': orders})
 
 
-# -------- Orders --------
-class DeliveryOrderViewSet(viewsets.ViewSet):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.repo = DeliveryOrderRepository()
+def order_detail(request, pk):
+    order = get_object_or_404(DeliveryOrder, pk=pk)
 
-    def list(self, request):
-        orders = self.repo.get_all()
-        serializer = DeliveryOrderSerializer(orders, many=True)
-        return Response(serializer.data)
+    if request.method == 'POST':
+        order.delete()
+        return redirect('order_list')
 
-    def retrieve(self, request, pk=None):
-        order = self.repo.get_by_id(pk)
-        if order is None:
-            return Response({"detail": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
-        serializer = DeliveryOrderSerializer(order)
-        return Response(serializer.data)
+    return render(request, 'core/order_detail.html', {'order': order})
 
-    def create(self, request):
-        serializer = DeliveryOrderSerializer(data=request.data)
-        if serializer.is_valid():
-            order = self.repo.create(**serializer.validated_data)
-            return Response(DeliveryOrderSerializer(order).data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def update(self, request, pk=None):
-        serializer = DeliveryOrderSerializer(data=request.data)
-        if serializer.is_valid():
-            updated = self.repo.update(pk, **serializer.validated_data)
-            if updated is None:
-                return Response({"detail": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
-            return Response(DeliveryOrderSerializer(updated).data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+def order_create(request):
+    form = DeliveryOrderForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        return redirect('order_list')
+    return render(request, 'core/order_form.html', {'form': form})
 
-    def destroy(self, request, pk=None):
-        deleted = self.repo.delete(pk)
-        if not deleted:
-            return Response({"detail": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
-    # ---- агрегований звіт ----
-    @action(detail=False, methods=['get'])
-    def stats(self, request):
-        orders = self.repo.get_all()
-        total_orders = orders.count()
-        total_income = sum(order.price for order in orders)
+def order_update(request, pk):
+    order = get_object_or_404(DeliveryOrder, pk=pk)
+    form = DeliveryOrderForm(request.POST or None, instance=order)
+    if form.is_valid():
+        form.save()
+        return redirect('order_detail', pk=pk)
+    return render(request, 'core/order_form.html', {'form': form})
 
-        income_by_courier = {}
-        for order in orders:
-            name = order.courier.name
-            income_by_courier.setdefault(name, 0)
-            income_by_courier[name] += float(order.price)
+def order_update(request, pk):
+    order = get_object_or_404(DeliveryOrder, pk=pk)
+    form = DeliveryOrderForm(request.POST or None, instance=order)
 
-        return Response({
-            "total_orders": total_orders,
-            "total_income": float(total_income),
-            "income_by_courier": income_by_courier,
-        })
+    if form.is_valid():
+        form.save()
+        return redirect('order_detail', pk=order.pk)
+
+    return render(request, 'core/order_form.html', {'form': form})
+
+def order_delete(request, pk):
+    order = get_object_or_404(DeliveryOrder, pk=pk)
+
+    if request.method == 'POST':
+        order.delete()
+        return redirect('order_list')
+
+    return render(request, 'core/order_confirm_delete.html', {'order': order})
+
+from django.shortcuts import render
+
+def external_guests(request):
+    guests = []  
+    return render(request, "core/external_guests.html", {
+        "guests": guests
+    })
+
+import requests
+
+API_BASE_URL = "http://127.0.0.1:8001/api"
+
+class NetworkHelper:
+
+    @staticmethod
+    def get_guests():
+        response = requests.get(f"{API_BASE_URL}/guests/")
+        response.raise_for_status()
+        return response.json()
+
+    @staticmethod
+    def delete_guest(guest_id):
+        response = requests.delete(f"{API_BASE_URL}/guests/{guest_id}/")
+        response.raise_for_status()
+        return True
+
+
+from django.shortcuts import redirect
+from .NetworkHelper import HotelAPI
+
+
+def delete_external_guest(request, guest_id):
+    if request.method == "POST":
+        HotelAPI.delete_guest(guest_id)
+    return redirect("external_guests")

@@ -1,0 +1,15 @@
+<h1>Guests from external API</h1>
+
+<ul>
+  {% for g in guests %}
+    <li>
+      {{ g.name }} ({{ g.email }})
+      <form method="post" action="{% url 'delete_external_guest' g.id %}">
+        {% csrf_token %}
+        <button type="submit">Delete</button>
+      </form>
+    </li>
+  {% endfor %}
+</ul>
+
+<a href="/">Back</a>

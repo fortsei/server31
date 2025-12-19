@@ -50,7 +50,7 @@ class DeliveryOrderRepository(BaseRepository):
         super().__init__(DeliveryOrder)
 
 
-# --- Менеджер репозиторіїв (Unit of Work) ---
+
 class RepositoryManager:
     def __init__(self):
         self.customers = CustomerRepository()

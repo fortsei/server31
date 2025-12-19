@@ -1,12 +1,25 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import CustomerViewSet, CourierViewSet, DeliveryOrderViewSet
-
-router = DefaultRouter()
-router.register(r'customers', CustomerViewSet, basename='customer')
-router.register(r'couriers', CourierViewSet, basename='courier')
-router.register(r'orders', DeliveryOrderViewSet, basename='order')
+from django.urls import path
+from . import views
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('orders/', views.order_list, name='order_list'),
+    path('orders/create/', views.order_create, name='order_create'),
+    path('orders/<int:pk>/', views.order_detail, name='order_detail'),
+    path('orders/<int:pk>/edit/', views.order_update, name='order_update'),
+    path('orders/<int:pk>/delete/', views.order_delete, name='order_delete'),
+    path("external/guests/", views.external_guests, name="external_guests"),
+    path("external/guests/", views.external_guests, name="external_guests"),
+path("external/guests/<int:guest_id>/delete/", views.delete_external_guest, name="delete_external_guest"),
+
+
 ]
+
+from django.shortcuts import redirect
+from .NetworkHelper import HotelAPI
+
+
+def delete_external_guest(request, guest_id):
+    if request.method == "POST":
+        HotelAPI.delete_guest(guest_id)
+    return redirect("external_guests")
+
