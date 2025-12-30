@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Plotly Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .box { background: white; padding: 10px; border-radius: 8px; min-height: 200px; }
+    </style>
+</head>
+<body>
+    <h1>Аналітика (Plotly)</h1>
+    <a href="/dashboard/v2/">👉 Перейти на Bokeh (V2)</a><br><br>
+
+    <form method="GET">
+        <label>Мін. ціна:</label>
+        <input type="number" name="min_price" value="{{ min_price }}" step="10">
+        <button type="submit">Фільтрувати</button>
+    </form>
+    <br>
+
+    {% if no_data %}
+        <h3 style="color: red;">Даних не знайдено. Додайте замовлення в базу через адмінку!</h3>
+    {% else %}
+        <div class="grid">
+            <div class="box">{{ g1|safe }}</div>
+            <div class="box">{{ g2|safe }}</div>
+            <div class="box">{{ g3|safe }}</div>
+            <div class="box">{{ g4|safe }}</div>
+            <div class="box">{{ g5|safe }}</div>
+            <div class="box">{{ g6|safe }}</div>
+        </div>
+    {% endif %}
+</body>
+</html>

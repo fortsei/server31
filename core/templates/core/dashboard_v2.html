@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bokeh Dashboard</title>
+    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.8.1.min.js"></script>
+    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-3.8.1.min.js"></script>
+    
+    {{ script|safe }}
+</head>
+<body style="padding: 20px; font-family: sans-serif; background-color: #f8f9fa;">
+    <div style="max-width: 1200px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <h1>Дашборд V2 (Bokeh)</h1>
+        <a href="/dashboard/" style="text-decoration: none; color: #007bff; font-weight: bold;">⬅ Назад до Plotly</a>
+        <hr>
+        <div style="margin-top: 20px; display: flex; justify-content: center;">
+            {{ div|safe }}
+        </div>
+    </div>
+</body>
+</html>

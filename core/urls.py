@@ -8,18 +8,8 @@ urlpatterns = [
     path('orders/<int:pk>/edit/', views.order_update, name='order_update'),
     path('orders/<int:pk>/delete/', views.order_delete, name='order_delete'),
     path("external/guests/", views.external_guests, name="external_guests"),
-    path("external/guests/", views.external_guests, name="external_guests"),
-path("external/guests/<int:guest_id>/delete/", views.delete_external_guest, name="delete_external_guest"),
-
-
+    path("external/guests/<int:guest_id>/delete/", views.delete_external_guest, name="delete_external_guest"),
+    path('dashboard/', views.dashboard_v1, name='dashboard'),
+    path('dashboard/v2/', views.dashboard_v2, name='dashboard_v2'), 
+    path('api/analytics/', views.AnalyticsAPIView.as_view(), name='analytics_api'),
 ]
-
-from django.shortcuts import redirect
-from .NetworkHelper import HotelAPI
-
-
-def delete_external_guest(request, guest_id):
-    if request.method == "POST":
-        HotelAPI.delete_guest(guest_id)
-    return redirect("external_guests")
-
