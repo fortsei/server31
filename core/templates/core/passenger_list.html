@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head><title>Список пасажирів</title></head>
+<body>
+    <h1>Список пасажирів</h1>
+    <a href="{% url 'passenger_add' %}">Додати нового пасажира</a>
+    <ul>
+        {% for passenger in passengers %}
+            <li>
+                <a href="{% url 'passenger_detail' passenger.pk %}">
+                    {{ passenger.first_name }} {{ passenger.last_name }}
+                </a>
+            </li>
+        {% empty %}
+            <li>Пасажирів немає.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

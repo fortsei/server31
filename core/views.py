@@ -1,111 +1,457 @@
 import pandas as pd
-import plotly.express as px
-import plotly.offline as opy
-from django.shortcuts import render, redirect
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .repositories import repo
-from .NetworkHelper import HotelAPI
+from core.repositories import analytics_repo
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.urls import reverse_lazy
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from .models import Passenger
+from .forms import PassengerForm
+from rest_framework import viewsets 
+from core.serializers import (
+    AirportSerializer,
+    AircraftSerializer,
+    FlightSerializer,
+    PassengerSerializer,
+    BookingSerializer,
+    CrewSerializer,
+    FlightCrewSerializer,
+    TicketSerializer
+)
 
+from core.repositories import repo
 
-from bokeh.plotting import figure
-from bokeh.embed import components
-from bokeh.models import ColumnDataSource
-from bokeh.layouts import gridplot
+class AirportListCreateAPIView(APIView):
 
-
-def order_list(request): 
-    return render(request, 'core/order_list.html', {'orders': repo.orders.get_all()})
-
-def order_create(request): 
-    return render(request, 'core/order_form.html')
-
-def order_detail(request, pk): 
-    return render(request, 'core/order_detail.html')
-
-def order_update(request, pk): 
-    return render(request, 'core/order_form.html')
-
-def order_delete(request, pk): 
-    return render(request, 'core/order_confirm_delete.html')
-
-def external_guests(request): 
-    return render(request, 'core/external_guests.html')
-
-def delete_external_guest(request, guest_id):
-    if request.method == "POST": 
-        HotelAPI.delete_guest(guest_id)
-    return redirect("external_guests")
-
-
-class AnalyticsAPIView(APIView):
     def get(self, request):
-        data = list(repo.orders.get_revenue_by_courier())
+        airports = repo.airports.get_all()
+        serializer = AirportSerializer(airports, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = AirportSerializer(data=request.data)
+        if serializer.is_valid():
+            airport = repo.airports.create(**serializer.validated_data)
+            return Response(
+                AirportSerializer(airport).data,
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+class AirportDetailAPIView(APIView):
+
+    def get(self, request, pk):
+        airport = repo.airports.get_by_id(pk)
+        if not airport:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(AirportSerializer(airport).data)
+
+    def put(self, request, pk):
+        serializer = AirportSerializer(data=request.data)
+        if serializer.is_valid():
+            airport = repo.airports.update(pk, **serializer.validated_data)
+            if not airport:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response(AirportSerializer(airport).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        airport = repo.airports.delete(pk)
+        if not airport:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class FlightListCreateAPIView(APIView):
+
+    def get(self, request):
+        flights = repo.flights.get_all()
+        serializer = FlightSerializer(flights, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = FlightSerializer(data=request.data)
+        if serializer.is_valid():
+            flight = repo.flights.create(**serializer.validated_data)
+            return Response(
+                FlightSerializer(flight).data,
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class FlightDetailAPIView(APIView):
+
+    def get(self, request, pk):
+        flight = repo.flights.get_by_id(pk)
+        if not flight:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(FlightSerializer(flight).data)
+
+    def put(self, request, pk):
+        serializer = FlightSerializer(data=request.data)
+        if serializer.is_valid():
+            flight = repo.flights.update(pk, **serializer.validated_data)
+            if not flight:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response(FlightSerializer(flight).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        flight = repo.flights.delete(pk)
+        if not flight:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class AircraftListCreateAPIView(APIView):
+
+    def get(self, request):
+        aircrafts = repo.aircrafts.get_all()
+        serializer = AircraftSerializer(aircrafts, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = AircraftSerializer(data=request.data)
+        if serializer.is_valid():
+            aircraft = repo.aircraft.create(**serializer.validated_data)
+            return Response(
+                AirportSerializer(aircraft).data,
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+class AircraftDetailAPIView(APIView):
+
+    def get(self, request, pk):
+        aircraft = repo.aircrafts.get_by_id(pk)
+        if not aircraft:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(AircraftSerializer(aircraft).data)
+
+    def put(self, request, pk):
+        serializer = AirportSerializer(data=request.data)
+        if serializer.is_valid():
+            aircraft = repo.aircrafts.update(pk, **serializer.validated_data)
+            if not aircraft:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response(AircraftSerializer(aircraft).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        aircraft = repo.aircrafts.delete(pk)
+        if not aircraft:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class PassengerListCreateAPIView(APIView):
+
+    def get(self, request):
+        passengers = repo.passengers.get_all()
+        serializer = PassengerSerializer(passengers, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = PassengerSerializer(data=request.data)
+        if serializer.is_valid():
+            passenger = repo.passengers.create(**serializer.validated_data)
+            return Response(
+                PassengerSerializer(passenger).data,
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PassengerDetailAPIView(APIView):
+
+    def get(self, request, pk):
+        passenger = repo.passengers.get_by_id(pk)
+        if not passenger:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(PassengerSerializer(passenger).data)
+
+    def put(self, request, pk):
+        serializer = PassengerSerializer(data=request.data)
+        if serializer.is_valid():
+            passenger = repo.passengers.update(pk, **serializer.validated_data)
+            if not passenger:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response(PassengerSerializer(passenger).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        passenger = repo.passengers.delete(pk)
+        if not passenger:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class BookingListCreateAPIView(APIView):
+
+    def get(self, request):
+        bookings = repo.bookings.get_all()
+        serializer = BookingSerializer(bookings, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = BookingSerializer(data=request.data)
+        if serializer.is_valid():
+            booking = repo.bookings.create(**serializer.validated_data)
+            return Response(
+                BookingSerializer(booking).data,
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class BookingDetailAPIView(APIView):
+
+    def get(self, request, pk):
+        booking = repo.bookings.get_by_id(pk)
+        if not booking:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(BookingSerializer(booking).data)
+
+    def put(self, request, pk):
+        serializer = BookingSerializer(data=request.data)
+        if serializer.is_valid():
+            booking = repo.bookings.update(pk, **serializer.validated_data)
+            if not booking:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response(BookingSerializer(booking).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        booking = repo.bookings.delete(pk)
+        if not booking:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class TicketListCreateAPIView(APIView):
+
+    def get(self, request):
+        tickets = repo.tickets.get_all()
+        serializer = TicketSerializer(tickets, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = TicketSerializer(data=request.data)
+        if serializer.is_valid():
+            ticket = repo.tickets.create(**serializer.validated_data)
+            return Response(
+                TicketSerializer(ticket).data,
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TicketDetailAPIView(APIView):
+
+    def get(self, request, pk):
+        ticket = repo.tickets.get_by_id(pk)
+        if not ticket:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(TicketSerializer(ticket).data)
+
+    def put(self, request, pk):
+        serializer = TicketSerializer(data=request.data)
+        if serializer.is_valid():
+            ticket = repo.tickets.update(pk, **serializer.validated_data)
+            if not ticket:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response(TicketSerializer(ticket).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        ticket = repo.tickets.delete(pk)
+        if not ticket:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CrewListCreateAPIView(APIView):
+
+    def get(self, request):
+        crew = repo.crews.get_all()
+        serializer = CrewSerializer(crew, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = CrewSerializer(data=request.data)
+        if serializer.is_valid():
+            crew_member = repo.crews.create(**serializer.validated_data)
+            return Response(
+                CrewSerializer(crew_member).data,
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CrewDetailAPIView(APIView):
+
+    def get(self, request, pk):
+        crew = repo.crews.get_by_id(pk)
+        if not crew:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(CrewSerializer(crew).data)
+
+    def put(self, request, pk):
+        serializer = CrewSerializer(data=request.data)
+        if serializer.is_valid():
+            crew = repo.crews.update(pk, **serializer.validated_data)
+            if not crew:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response(CrewSerializer(crew).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        crew = repo.crews.delete(pk)
+        if not crew:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class FlightCrewListCreateAPIView(APIView):
+
+    def get(self, request):
+        flight_crews = repo.flight_crews.get_all()
+        serializer = FlightCrewSerializer(flight_crews, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = FlightCrewSerializer(data=request.data)
+        if serializer.is_valid():
+            flight_crew = repo.flight_crews.create(**serializer.validated_data)
+            return Response(
+                FlightCrewSerializer(flight_crew).data,
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class FlightCrewDetailAPIView(APIView):
+
+    def get(self, request, pk):
+        flight_crew = repo.flight_crews.get_by_id(pk)
+        if not flight_crew:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(FlightCrewSerializer(flight_crew).data)
+
+    def delete(self, request, pk):
+        flight_crew = repo.flight_crews.delete(pk)
+        if not flight_crew:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+ 
+
+
+
+class PassengerListView(ListView):
+    model = Passenger
+    template_name = 'core/passenger_list.html'
+    context_object_name = 'passengers'
+
+
+class PassengerDetailView(DetailView):
+    model = Passenger
+    template_name = 'core/passenger_detail.html'
+    context_object_name = 'passenger'
+
+
+class PassengerCreateView(CreateView):
+    model = Passenger
+    form_class = PassengerForm
+    template_name = 'core/passenger_form.html'
+    success_url = reverse_lazy('passenger_list')
+
+
+class PassengerUpdateView(UpdateView):
+    model = Passenger
+    form_class = PassengerForm
+    template_name = 'core/passenger_form.html'
+    success_url = reverse_lazy('passenger_list')
+
+
+class PassengerDeleteView(DeleteView):
+    model = Passenger
+    success_url = reverse_lazy('passenger_list')
+   
+class PassengerViewSet(viewsets.ModelViewSet):
+    queryset = Passenger.objects.all()
+    serializer_class = PassengerSerializer
+
+
+
+class BaseAnalyticsView(APIView):
+   
+    def process_dataframe(self, queryset):
+       
+        data = list(queryset)
         df = pd.DataFrame(data)
-        stats = {}
-        if not df.empty:
-            stats = {
-                "mean": float(df['total'].mean()),
-                "median": float(df['total'].median()),
-                "min": float(df['total'].min()),
-                "max": float(df['total'].max()),
-            }
-        return Response({"data": data, "pandas_stats": stats})
+        
+        if df.empty:
+            return None, None
+            
+        return df, data
 
 
-def dashboard_v1(request):
-    min_p = float(request.GET.get('min_price', 0))
-    orders_qs = repo.orders.get_all().filter(price__gte=min_p)
-    df = pd.DataFrame(list(orders_qs.values('courier__name', 'customer__full_name', 'price')))
+class AircraftRevenueAnalyticsView(BaseAnalyticsView):
+    def get(self, request):
+        queryset = analytics_repo.get_revenue_by_aircraft_type()
+        df, raw_data = self.process_dataframe(queryset)
+        
+        if df is None:
+            return Response({"message": "No data available"})
 
-    if df.empty:
-        return render(request, 'core/dashboard.html', {'min_price': min_p, 'no_data': True})
+        
+        stats = {
+            "mean_revenue": df['total_revenue'].mean(),
+            "median_revenue": df['total_revenue'].median(),
+            "max_revenue": df['total_revenue'].max(),
+            "min_revenue": df['total_revenue'].min(),
+        }
 
-    context = {
-        'g1': opy.plot(px.bar(df.groupby('courier__name')['price'].sum().reset_index(), x='courier__name', y='price', title="Дохід кур'єрів"), auto_open=False, output_type='div'),
-        'g2': opy.plot(px.pie(df.groupby('customer__full_name')['price'].sum().reset_index(), values='price', names='customer__full_name', title="Топ клієнтів"), auto_open=False, output_type='div'),
-        'g3': opy.plot(px.line(df, y='price', title="Ціни замовлень"), auto_open=False, output_type='div'),
-        'g4': opy.plot(px.scatter(df, x='courier__name', y='price', title="Розподіл замовлень"), auto_open=False, output_type='div'),
-        'g5': opy.plot(px.bar(df.groupby('customer__full_name')['price'].mean().reset_index(), x='customer__full_name', y='price', title="Середній чек"), auto_open=False, output_type='div'),
-        'g6': opy.plot(px.histogram(df, x='price', title="Гістограма цін"), auto_open=False, output_type='div'),
-        'min_price': min_p
-    }
-    return render(request, 'core/dashboard.html', context)
+       
+        df['manufacturer'] = df['flight__aircraft__model'].apply(lambda x: x.split()[0] if x else 'Unknown')
+        manufacturer_stats = df.groupby('manufacturer')['total_revenue'].sum().to_dict()
+
+        return Response({
+            "dataframe_data": raw_data,  
+            "statistics": stats,         
+            "grouped_by_manufacturer": manufacturer_stats 
+        })
 
 
-def dashboard_v2(request):
-    data = list(repo.orders.get_revenue_by_courier())
-    df = pd.DataFrame(data)
-    
-    if df.empty:
-        return render(request, 'core/dashboard_v2.html', {'div': "База даних порожня"})
+class PassengerAnalyticsView(BaseAnalyticsView):
+    def get(self, request):
+        queryset = analytics_repo.get_avg_ticket_price_by_nationality()
+        df, raw_data = self.process_dataframe(queryset)
 
-    
-    names = [str(x) for x in df['courier__name'].tolist()]
-    totals = [float(x) for x in df['total'].tolist()]
-    x_axis = list(range(len(totals))) 
+        if df is None:
+            return Response({"message": "No data"})
 
-    
-    p1 = figure(x_range=names, title="Дохід (Bar)", height=250, width=350)
-    p1.vbar(x=names, top=totals, width=0.7, color="navy")
-    
-    p2 = figure(title="Динаміка (Line)", height=250, width=350)
-    p2.line(x_axis, totals, line_width=2, color="red")
+        
+        global_mean = df['avg_spend'].mean()
+        high_spenders = df[df['avg_spend'] > global_mean]
 
-    p3 = figure(title="Точки (Scatter)", height=250, width=350)
-    p3.circle(x_axis, totals, size=10, color="green")
+        return Response({
+            "data": raw_data,
+            "global_mean_spend": global_mean,
+            "high_spending_nationalities_count": len(high_spenders),
+            "top_nationality": df.iloc[0].to_dict()
+        })
 
-    p4 = figure(y_range=names, title="Рейтинг (HBar)", height=250, width=350)
-    p4.hbar(y=names, right=totals, height=0.5, color="orange")
 
-    p5 = figure(title="Маркери (Square)", height=250, width=350)
-    p5.square(x_axis, totals, size=10, color="olive")
-
-    p6 = figure(title="Сходинки (Step)", height=250, width=350)
-    p6.step(x_axis, totals, line_width=2, color="purple")
-
-    # сітка
-    layout = gridplot([[p1, p2], [p3, p4], [p5, p6]])
-    script, div = components(layout)
-    
-    return render(request, 'core/dashboard_v2.html', {'script': script, 'div': div})
+class GeneralReportView(BaseAnalyticsView):
+    def get(self, request):
+     
+        busy_airports = list(analytics_repo.get_flights_by_airport())
+        frequent_flyers = list(analytics_repo.get_frequent_flyers())
+        
+       
+        df_airports = pd.DataFrame(busy_airports)
+        
+        return Response({
+            "busy_airports_top_3": busy_airports[:3],
+            "frequent_flyers_count": len(frequent_flyers),
+            "median_flights_per_airport": df_airports['total_flights'].median() if not df_airports.empty else 0
+        })

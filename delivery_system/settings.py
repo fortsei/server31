@@ -18,7 +18,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'core',                 # наш застосунок
+    'core',                 
     'rest_framework',       # Django REST Framework
 
     'django.contrib.admin',
@@ -63,7 +63,7 @@ WSGI_APPLICATION = 'delivery_system.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'delivery_db',
+        'NAME': 'mydb',
         'USER': 'root',
         'PASSWORD': '11111111',
         'HOST': 'localhost',
@@ -98,7 +98,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',

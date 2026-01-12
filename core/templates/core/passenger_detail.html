@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head><title>Деталі пасажира</title></head>
+<body>
+    <h1>{{ passenger.first_name }} {{ passenger.last_name }}</h1>
+    
+    <p><strong>Паспорт:</strong> {{ passenger.passport_number }}</p>
+    <p><strong>Національність:</strong> {{ passenger.nationality }}</p>
+    <p><strong>Дата народження:</strong> {{ passenger.birth_date }}</p>
+
+    <hr>
+    <a href="{% url 'passenger_edit' passenger.pk %}">Редагувати</a> | 
+    <a href="{% url 'passenger_list' %}">Назад до списку</a>
+
+    <hr>
+    <h3>Видалити пасажира</h3>
+    <form action="{% url 'passenger_delete' passenger.pk %}" method="post">
+        {% csrf_token %}
+        <button type="submit" onclick="return confirm('Ви впевнені?')">Видалити</button>
+    </form>
+</body>
+</html>

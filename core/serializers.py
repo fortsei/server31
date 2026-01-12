@@ -1,17 +1,59 @@
 from rest_framework import serializers
-from .models import Customer, Courier, DeliveryOrder
+from core.models import (
+    Airport,
+    Aircraft,
+    Flight,
+    Passenger,
+    Booking,
+    Crew,
+    FlightCrew,
+    Ticket
+)
 
-class CustomerSerializer(serializers.ModelSerializer):
+
+class AirportSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Customer
+        model = Airport
         fields = '__all__'
 
-class CourierSerializer(serializers.ModelSerializer):
+
+class AircraftSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Courier
+        model = Aircraft
         fields = '__all__'
 
-class DeliveryOrderSerializer(serializers.ModelSerializer):
+
+class FlightSerializer(serializers.ModelSerializer):
     class Meta:
-        model = DeliveryOrder
+        model = Flight
+        fields = '__all__'
+
+
+class PassengerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Passenger
+        fields = '__all__'
+
+
+class BookingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Booking
+        fields = '__all__'
+
+
+class CrewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Crew
+        fields = '__all__'
+
+
+class FlightCrewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FlightCrew
+        fields = '__all__'
+
+
+class TicketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ticket
         fields = '__all__'

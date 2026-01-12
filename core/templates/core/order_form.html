@@ -1,9 +1,0 @@
-<h1>Create / Edit order</h1>
-
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Save</button>
-</form>
-
-<a href="{% url 'order_list' %}">Back to orders</a>

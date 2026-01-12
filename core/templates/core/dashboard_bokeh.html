@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bokeh Dashboard (Full)</title>
+    {{ resources|safe }}
+</head>
+<body>
+    <h1>Повний Дашборд Bokeh (6 графіків)</h1>
+    
+    <a href="{% url 'passenger_list' %}">⬅ Назад</a> | 
+    <a href="{% url 'dashboard_plotly' %}">Версія Plotly</a>
+
+    <hr>
+
+    <h3>1. Рейси по аеропортах</h3>
+    {{ div1|safe }}
+    
+    <hr>
+    <h3>2. Дохід по літаках</h3>
+    {{ div2|safe }}
+
+    <hr>
+    <h3>3. Активні пасажири</h3>
+    {{ div3|safe }}
+
+    <hr>
+    <h3>4. Середній чек (Національності)</h3>
+    {{ div4|safe }}
+
+    <hr>
+    <h3>5. Низька завантаженість</h3>
+    {{ div5|safe }}
+
+    <hr>
+    <h3>6. Динаміка народжуваності</h3>
+    {{ div6|safe }}
+
+    {{ script|safe }}
+
+</body>
+</html>

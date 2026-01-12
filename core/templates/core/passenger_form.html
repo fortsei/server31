@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head><title>Пасажир</title></head>
+<body>
+    <h1>{% if form.instance.pk %}Редагування{% else %}Створення{% endif %} пасажира</h1>
+    
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }} <button type="submit">Зберегти</button>
+    </form>
+    
+    <a href="{% url 'passenger_list' %}">Скасувати</a>
+</body>
+</html>
